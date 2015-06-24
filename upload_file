@@ -1,0 +1,33 @@
+#!/usr/bin/expect --
+
+log_user 1
+
+set remote_ip   192.168.10.210
+set conf_file	setup.ini
+
+proc run_cmd {cmd} {
+    send "$cmd\r"
+    expect  {
+    	"Not connected."	{ exit -1 }	
+    	timeout 			{ exit -1 }
+    	"ftp>"				{ return 0 }
+    }	
+}
+
+spawn -noecho ftp $remote_ip 
+
+while {1} {
+	expect  {
+		"ame "		{ send "root\r" }
+		"assword:"	{ send "123456\r" }
+		"ftp>"      { break }
+		timeout		{ exit -1 }
+	}
+}
+
+run_cmd "ascii"
+run_cmd "cd /root/app"
+run_cmd "put $conf_file"
+run_cmd "bye"
+
+exit 0
